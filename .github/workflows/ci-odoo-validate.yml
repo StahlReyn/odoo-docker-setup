@@ -1,0 +1,51 @@
+name: Odoo Module Validation
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  validate-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Fetch the repository code
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # Step 2: Set up a stable Python environment
+    - name: Set up Python
+      uses: actions/checkout@v4
+      with:
+        python-version: '3.10'
+
+    # Step 3: Scan for invalid Windows (CRLF) line endings
+    - name: Check for Windows Line Endings (CRLF)
+      run: |
+        echo "Scanning for CRLF line endings..."
+        # Finds any text files containing carriage returns (\r)
+        CRLF_FILES=$(find . -type f \( -name "*.py" -o -name "*.xml" -o -name "*.csv" -o -name "*.conf" \) -exec grep -l $'\r' {} + || true)
+        
+        if [ ! -z "$CRLF_FILES" ]; then
+          echo "ERROR: The following files contain Windows CRLF line endings instead of Linux LF:"
+          echo "$CRLF_FILES"
+          echo "Please run 'dos2unix' or change your VS Code settings to LF, then re-commit."
+          exit 1
+        else
+          echo "SUCCESS: All scanned files are using Linux LF line endings."
+        fi
+
+    # Step 4: Install Python linters to check code health
+    - name: Install Linting Tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+
+    # Step 5: Check for basic Python & manifest syntax bugs
+    - name: Run Syntax and Structure Check
+      run: |
+        echo "Checking for structural syntax blocks..."
+        # Stop the build if there are Python syntax errors, missing commas, or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
