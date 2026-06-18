@@ -82,3 +82,112 @@ If your IDE shows an unresolved reference for `import odoo`, run this command in
 ```powershell
 docker exec <container_id_or_web> tar -cf /tmp/odoo_core.tar -C /usr/lib/python3/dist-packages odoo && docker cp <container_id_or_web>:/tmp/odoo_core.tar ./odoo_core.tar && tar -xf ./odoo_core.tar -C ./ && mkdir odoo_core -Force && move odoo odoo_core/ && rm ./odoo_core.tar
 ```
+
+## Model Change to PostgreSQL Troubleshooting
+
+This guide describes how to configure, structure, and troubleshoot custom Odoo modules inside a Docker environment. It provides a systematic checklist to resolve common development issues like missing database tables, hidden menus, registry synchronization blockages, and Docker container connection errors.
+
+### Standard Module Structural Architecture
+
+Odoo relies on strict file paths and folder names to correctly parse business logic, security parameters, and frontend interfaces. Always adhere to this structural standard:
+
+```text
+your_module/
+├── __init__.py                  # Root initialization file
+├── __manifest__.py              # Module manifest (Metadata & file registries)
+├── security/
+│   └── ir.model.access.csv      # Security groups and Access Control Lists (ACL)
+├── models/
+│   ├── __init__.py              # Models subdirectory execution mapping
+│   └── your_model.py            # Python model definitions (ORM layers)
+└── views/
+    └── your_model_views.xml     # UI element layouts (Actions, Menus, Windows)
+```
+
+---
+
+### Proper Architectural Implementations
+
+#### Python Scope & Initialization Routing
+
+To prevent critical circular dependency errors (`ImportError: cannot import name...`), route module execution through subdirectory layers rather than referencing individual data models at the base folder layer.
+
+**Root Initializer (`your_module/__init__.py`):**
+```python
+from . import models
+```
+**Subdirectory Initializer (`your_module/models/__init__.py`):**
+```python
+from . import your_model
+```
+
+#### Naming Conventions & System Mutations
+
+Always write model identifier tags using Odoo's standard dot notation format. Odoo uses this schema for internal module mappings and automatically replaces the dots with underscores when generating PostgreSQL database relations.
+
+```python
+from odoo import fields, models
+
+class YourModelClass(models.Model):
+    _name = "your.model.name"     # Database table becomes: your_model_name
+    _description = "A Clear Human Readable Description"
+
+    name = fields.Char(required=True)
+```
+
+#### Security Layer Dependencies
+
+Odoo blocks relational database table generation if a model definition lacks explicit user access configuration. Ensure your access controls strictly follow this framework:
+
+**File Location:** `your_module/security/ir.model.access.csv`
+
+**Syntax Blueprint:**
+```csv
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_your_model_name,access.your.model.name,model_your_model_name,,1,1,1,1
+```
+_(Note: Replace dots in the original model name string with underscores and append the `model_` prefix for the `model_id:id` column)._
+
+---
+
+### Systematic Registry Reset & Table Extraction Pipeline
+
+If you modify configuration manifests, secure permissions, or backend Python models while an app is partially loaded, the Odoo schema sync process can crash. This leaves the model without a corresponding PostgreSQL table, often displaying database validation warning loops.
+
+Execute this sequential script in your terminal to force a clean environment synchronization:
+
+#### 1. Initialize the Core Containers
+
+Ensure your active environment stack is running in detached background mode so database networks, engine files, and interface sockets can bind correctly.
+
+```bash
+docker compose up -d
+```
+
+#### 2. Wipe Stale In-Memory State Trace Registry
+
+Clear corrupted model signatures from the Odoo system tracking layers and reset the core installation status marker for your custom app:
+
+```bash
+# Delete the broken database metadata entry
+docker compose exec db psql -U odoo -d your_db_name -c "DELETE FROM ir_model WHERE model = 'your.model.name';"
+
+# Revert module status back to a pristine deployment target status
+docker compose exec db psql -U odoo -d your_db_name -c "UPDATE ir_module_module SET state='to install' WHERE name='your_module_folder_name';"
+```
+
+#### 3. Execute an Explicit Forced Compilation Run
+
+Spin up an isolated initialization instance to bypass interface locks, force-read manifest configurations, and write the underlying PostgreSQL schema directly to disk.
+
+```bash
+docker compose run --rm web odoo -d your_db_name -i your_module_folder_name --stop-after-init
+```
+
+#### 4. Validate the Database Schema Generation
+
+Query your live running database directly to confirm the engine successfully compiled the target table.
+
+```bash
+docker compose exec db psql -U odoo -d your_db_name -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE 'your_module%';"
+```
