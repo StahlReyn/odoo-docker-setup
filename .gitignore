@@ -1,6 +1,9 @@
 # Environment
 .env
 
+# Docker
+docker-compose.override.yml
+
 # Python bytecode
 __pycache__/
 *.py[cod]

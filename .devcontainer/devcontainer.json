@@ -1,0 +1,4 @@
+{
+  "name": "Odoo Development",
+  "postStartCommand": "docker exec -u root odoo_container_name chown -R odoo:odoo /mnt/extra-addons"
+}
