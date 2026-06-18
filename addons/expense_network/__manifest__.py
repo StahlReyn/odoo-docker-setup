@@ -17,4 +17,4 @@
     'demo': [
         'demo/demo_data.xml',
     ],
-}
+} # pyright: ignore[reportUnusedExpression]
