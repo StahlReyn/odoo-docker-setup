@@ -1,6 +1,6 @@
 # Odoo Custom Module
 
-Description WIP
+This is a template project for setting up a split-configuration architecture with local development on Windows and production on Linux server using Docker.
 
 ## Deployment Notes
 
@@ -17,6 +17,8 @@ This repository uses a split-configuration architecture with local development o
 When transferring this repository to a live Linux server, the official Odoo container will automatically drop privileges and run as a secure, limited system user (**`odoo`**, UID `101`).
 
 Because Git does not preserve Linux user ownership, you **must** run the following command sequence on your Linux server immediately after cloning or pulling the repository:
+
+<details><summary><b>Show instructions</b></summary>
 
 ```bash
 # 1. Pull the latest code from GitHub to the server
@@ -35,9 +37,13 @@ docker compose up -d
 
 If you skip the `chown -R 101:101` step on Linux, the Odoo container will log an `Access Denied` error on startup and fail to scan or load any custom modules inside the `/addons` directory. Running this keeps your server protected; if the container is ever compromised, attackers cannot break out into your host system root files.
 
+</details>
+
 ## Local Development Troubleshooting (Windows / VS Code)
 
 If your custom Odoo module is not appearing in your web browser interface, execute these checks in your Windows terminal/PowerShell sequentially.
+
+<details><summary><b>Show instructions</b></summary>
 
 ### Verify Module Files Presence inside Docker
 
@@ -83,6 +89,8 @@ If your IDE shows an unresolved reference for `import odoo`, run this command in
 docker exec <container_id_or_web> tar -cf /tmp/odoo_core.tar -C /usr/lib/python3/dist-packages odoo && docker cp <container_id_or_web>:/tmp/odoo_core.tar ./odoo_core.tar && tar -xf ./odoo_core.tar -C ./ && mkdir odoo_core -Force && move odoo odoo_core/ && rm ./odoo_core.tar
 ```
 
+</details>
+
 ## Model Change to PostgreSQL Troubleshooting
 
 This guide describes how to configure, structure, and troubleshoot custom Odoo modules inside a Docker environment. It provides a systematic checklist to resolve common development issues like missing database tables, hidden menus, registry synchronization blockages, and Docker container connection errors.
@@ -90,6 +98,8 @@ This guide describes how to configure, structure, and troubleshoot custom Odoo m
 ### Standard Module Structural Architecture
 
 Odoo relies on strict file paths and folder names to correctly parse business logic, security parameters, and frontend interfaces. Always adhere to this structural standard:
+
+<details><summary><b>Show file structure</b></summary>
 
 ```text
 your_module/
@@ -104,19 +114,26 @@ your_module/
     └── your_model_views.xml     # UI element layouts (Actions, Menus, Windows)
 ```
 
----
+</details>
 
 ### Proper Architectural Implementations
+
+Double check the logs and see if the web container sends any warning. Here are potential problems:
+
+<details><summary><b>Show problems</b></summary>
 
 #### Python Scope & Initialization Routing
 
 To prevent critical circular dependency errors (`ImportError: cannot import name...`), route module execution through subdirectory layers rather than referencing individual data models at the base folder layer.
 
 **Root Initializer (`your_module/__init__.py`):**
+
 ```python
 from . import models
 ```
+
 **Subdirectory Initializer (`your_module/models/__init__.py`):**
+
 ```python
 from . import your_model
 ```
@@ -142,19 +159,21 @@ Odoo blocks relational database table generation if a model definition lacks exp
 **File Location:** `your_module/security/ir.model.access.csv`
 
 **Syntax Blueprint:**
+
 ```csv
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_your_model_name,access.your.model.name,model_your_model_name,,1,1,1,1
 ```
-_(Note: Replace dots in the original model name string with underscores and append the `model_` prefix for the `model_id:id` column)._
 
----
+_(Note: Replace dots in the original model name string with underscores and append the `model_`prefix for the`model*id:id` column).*
+
+</details>
 
 ### Systematic Registry Reset & Table Extraction Pipeline
 
 If you modify configuration manifests, secure permissions, or backend Python models while an app is partially loaded, the Odoo schema sync process can crash. This leaves the model without a corresponding PostgreSQL table, often displaying database validation warning loops.
 
-Execute this sequential script in your terminal to force a clean environment synchronization:
+<details><summary><b>Show instructions</b></summary>
 
 #### 1. Initialize the Core Containers
 
@@ -191,3 +210,5 @@ Query your live running database directly to confirm the engine successfully com
 ```bash
 docker compose exec db psql -U odoo -d your_db_name -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE 'your_module%';"
 ```
+
+</details>
