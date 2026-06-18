@@ -1,0 +1,7 @@
+services:
+  web:
+    user: root # Injects the root user block ONLY on your local Windows PC
+
+  db:
+    ports:
+      - "5433:5432" # Move to 5433 incase of conflict with Windows PostgreSQL
