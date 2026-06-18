@@ -74,3 +74,11 @@ Odoo does not auto-scan files during runtime. Force an application list update:
 2. Go to the **Apps** dashboard menu.
 3. Click on **Update Apps List** in the top navigation bar, then confirm by clicking **Update**.
 4. Clear the default `Apps` search filter query in the search input box and search for your technical module name.
+
+### Getting Auto-Complete and IntelliSense working locally
+
+If your IDE shows an unresolved reference for `import odoo`, run this command in your PowerShell terminal to pull the framework files into your workspace:
+
+```powershell
+docker exec <container_id_or_web> tar -cf /tmp/odoo_core.tar -C /usr/lib/python3/dist-packages odoo && docker cp <container_id_or_web>:/tmp/odoo_core.tar ./odoo_core.tar && tar -xf ./odoo_core.tar -C ./ && mkdir odoo_core -Force && move odoo odoo_core/ && rm ./odoo_core.tar
+```

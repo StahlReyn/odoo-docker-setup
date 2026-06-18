@@ -3,16 +3,15 @@
 
 # Docker
 docker-compose.override.yml
-
 # Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 
-# IDEs and Editors
-.vscode/
-.idea/
-
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Odoo Core Extracted for Python Language Server
+odoo_core.tar
+/odoo_core

@@ -1,0 +1,20 @@
+{
+    "python.analysis.extraPaths": [
+        "./odoo_core",
+        "./addons"
+    ],
+    "python.analysis.autoSearchPaths": false, 
+    "python.analysis.typeCheckingMode": "basic",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/odoo_core/odoo/addons": true  // Hides the heavy base addons folder from view
+    },
+    "search.exclude": {
+        "**/odoo_core/odoo/addons": true  // Stops VS Code from searching text inside base addons
+    },
+    "python.analysis.exclude": [
+        "./odoo_core/odoo/addons", "**/node_modules", "**/__pycache__", "**/.*"         // Stops Python from wasting memory indexing base addons
+    ]
+}
