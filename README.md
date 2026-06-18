@@ -1,6 +1,8 @@
-# Odoo Custom Module
+# Odoo Docker Setup
 
 This is a template project for setting up a split-configuration architecture with local development on Windows and production on Linux server using Docker.
+
+The example estate module provided in the repository is from the [Odoo Server framework 101 Tutorial](https://www.odoo.com/documentation/19.0/developer/tutorials/server_framework_101.html).
 
 ## Deployment Notes
 
