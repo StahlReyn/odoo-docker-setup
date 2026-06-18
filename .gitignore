@@ -1,0 +1,12 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
