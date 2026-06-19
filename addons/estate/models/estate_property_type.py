@@ -6,4 +6,3 @@ class EstatePropertyType(models.Model):
 
     active = fields.Boolean(default=True)
     name = fields.Char(required=True)
-    description = fields.Text()
