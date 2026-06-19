@@ -39,3 +39,14 @@ class EstatePropertyOffer(models.Model):
             else:
                 record.validity = 7
     
+    def action_cancel(self):
+        for record in self:
+            record.status = 'refused'
+        return True
+
+    def action_confirm(self):
+        for record in self:
+            record.status = 'accepted'
+            record.property_id.selling_price = record.price # type: ignore
+            record.property_id.buyer_id = record.partner_id # type: ignore
+        return True
