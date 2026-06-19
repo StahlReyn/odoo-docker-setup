@@ -15,3 +15,7 @@ Thumbs.db
 # Odoo Core Extracted for Python Language Server
 odoo_core.tar
 /odoo_core
+
+# Theme
+config
+muk_web_*
