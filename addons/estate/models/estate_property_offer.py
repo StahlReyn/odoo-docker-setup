@@ -15,8 +15,8 @@ class EstatePropertyOffer(models.Model):
             ('refused', 'Refused')], # type: ignore
         help="Status of the offer",
         copy=False)
-    partner_id = fields.Many2one('res.partner', string='Partner', required=True)
-    property_id = fields.Many2one('estate.property', string='Property', required=True)
+    partner_id = fields.Many2one('res.partner', required=True)
+    property_id = fields.Many2one('estate.property', required=True)
     create_date = fields.Date(copy=False)
     validity = fields.Integer(default=7)
     date_deadline = fields.Date(string="Deadline", compute="_compute_date_deadline", inverse="_inverse_date_deadline")

@@ -1,14 +1,10 @@
 {
     'name': "Real Estate",
-    'version': '1.0',
+    'version': '19.0.0.0.0',
     'depends': ['base'],
-    'author': "John Estate",
+    'author': "Odoo Community Association (OCA), John Estate",
     'category': 'Estate',
-    'description': """
-    This is a Module for Real Estate.
-    """,
     'license': "LGPL-3",
-    'installable': True,
     'application': True,
     'data': [
         'security/ir.model.access.csv',

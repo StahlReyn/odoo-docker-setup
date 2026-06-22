@@ -22,7 +22,6 @@ class EstateProperty(models.Model):
     garden = fields.Boolean()
     garden_area = fields.Integer(string="Garden Area (sqm)")
     garden_orientation = fields.Selection(
-        string='Garden Orientation',
         selection=[
             ('north', 'North'), 
             ('south', 'South'), 
@@ -30,7 +29,6 @@ class EstateProperty(models.Model):
             ('west', 'West')], # type: ignore
         help="The orientation of the garden")
     state = fields.Selection(
-        string='State',
         selection=[
             ('new', 'New'), 
             ('offer_received', 'Offer Received'), 
@@ -43,9 +41,9 @@ class EstateProperty(models.Model):
         default='new',
         store=True,
         compute="_compute_state")
-    property_type_id = fields.Many2one("estate.property.type", string="Property Type")
-    buyer_id = fields.Many2one('res.partner', string='Buyer', copy=False, readonly=True)
-    salesperson_id = fields.Many2one('res.users', string='Salesperson', default=lambda self: self.env.user)
+    property_type_id = fields.Many2one("estate.property.type")
+    buyer_id = fields.Many2one('res.partner', copy=False, readonly=True)
+    salesperson_id = fields.Many2one('res.users', default=lambda self: self.env.user)
     tag_ids = fields.Many2many("estate.property.tag", string="Tags")
     offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers", store=True)
     total_area = fields.Integer(string="Total Area (sqm)", readonly=True, compute="_compute_total_area")
@@ -64,7 +62,7 @@ class EstateProperty(models.Model):
     @api.ondelete(at_uninstall=False)
     def _unlink_except_new_state(self):
         if any(record.state in ['new', 'cancelled'] for record in self):
-            raise UserError("Can't delete New or Cancelled property!")
+            raise UserError(self.env._("Can't delete New or Cancelled property!"))
 
     @api.depends('living_area', 'garden_area')
     def _compute_total_area(self):
@@ -107,14 +105,14 @@ class EstateProperty(models.Model):
     def action_cancel(self):
         for record in self:
             if record.state == 'sold':
-                raise UserError("Sold properties cannot be cancelled.")
+                raise UserError(self.env._("Sold properties cannot be cancelled."))
             record.state = 'cancelled'
         return True
 
     def action_sold(self):
         for record in self:
             if record.state == 'cancelled':
-                raise UserError("Cancelled properties cannot be sold.")
+                raise UserError(self.env._("Cancelled properties cannot be sold."))
             record.state = 'sold'
         return True
     
@@ -124,5 +122,5 @@ class EstateProperty(models.Model):
             if float_is_zero(record.selling_price, 3):
                 continue # 0 is fine, skip
             if float_compare(record.selling_price, record.expected_price * 0.9, 3) == -1:
-                raise ValidationError("Selling price cannot be less than 90% of expected price")
+                raise ValidationError(self.env._("Selling price cannot be less than 90% of expected price"))
         # all records passed the test, don't return anything
