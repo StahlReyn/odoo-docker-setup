@@ -5,7 +5,7 @@
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
             <list string="Properties" 
-                decoration-success="state == 'offer_received' or state == 'offer_accepted'" 
+                decoration-success="state in ['offer_received', 'offer_accepted']" 
                 decoration-bf="state == 'offer_accepted'"
                 decoration-muted="state == 'sold'">
                 <field name="name"/>
@@ -15,6 +15,7 @@
                 <field name="expected_price"/>
                 <field name="selling_price"/>
                 <field name="date_availability" string="Available From"/>
+                <field name="state" column_invisible="True"/>
             </list>
         </field>
     </record>
@@ -25,8 +26,8 @@
         <field name="arch" type="xml">
             <form string="Property Form">
                 <header>
-                    <button name="action_sold" type="object" string="Sold" invisible="state == 'sold' or state == 'cancelled'"/>
-                    <button name="action_cancel" type="object" string="Cancel" invisible="state == 'sold' or state == 'cancelled'"/>
+                    <button name="action_sold" type="object" string="Sold" invisible="state in ['sold', 'cancelled']"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state in ['sold', 'cancelled']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,offer_received,offer_accepted,sold"/>
                 </header>
                 <sheet>
@@ -66,7 +67,9 @@
                             </group>
                         </page>
                         <page string="Offers">
-                            <field name="offer_ids" editable="True" readonly="state == 'offer_accepted' or state == 'sold' or state == 'cancelled'"/>
+                            <field name="offer_ids" 
+                                readonly="state in ['offer_accepted', 'sold', 'cancelled']"
+                                context="{'tree_view_ref': 'estate.estate_property_offer_tree'}"/>
                         </page>
                         <page string="Other Info">
                             <group>

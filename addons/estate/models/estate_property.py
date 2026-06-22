@@ -40,12 +40,14 @@ class EstateProperty(models.Model):
         help="The state of the property",
         required=True,
         copy=False,
-        default='new')
+        default='new',
+        store=True,
+        compute="_compute_state")
     property_type_id = fields.Many2one("estate.property.type", string="Property Type")
     buyer_id = fields.Many2one('res.partner', string='Buyer', copy=False, readonly=True)
     salesperson_id = fields.Many2one('res.users', string='Salesperson', default=lambda self: self.env.user)
     tag_ids = fields.Many2many("estate.property.tag", string="Tags")
-    offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers")
+    offer_ids = fields.One2many("estate.property.offer", "property_id", string="Offers", store=True)
     total_area = fields.Integer(string="Total Area (sqm)", readonly=True, compute="_compute_total_area")
     best_price = fields.Float(readonly=True, compute="_compute_best_price")
 
@@ -58,6 +60,11 @@ class EstateProperty(models.Model):
         'CHECK(selling_price > 0)',
         'The selling_price must be positive.',
     )
+
+    @api.ondelete(at_uninstall=False)
+    def _unlink_except_new_state(self):
+        if any(record.state == 'new' or record.state == 'cancelled' for record in self):
+            raise UserError("Can't delete New or Cancelled property!")
 
     @api.depends('living_area', 'garden_area')
     def _compute_total_area(self):
@@ -81,6 +88,22 @@ class EstateProperty(models.Model):
             self.garden_area = 0
             self.garden_orientation = False
 
+    @api.depends('offer_ids', 'offer_ids.status')
+    def _compute_state(self):
+        for record in self:
+            # Keep manual overrides (like 'sold' or 'canceled') intact
+            if record.state in ['sold', 'canceled']:
+                continue
+                
+            # Check for accepted offers first
+            if any(offer.status == 'accepted' for offer in record.offer_ids): # type: ignore
+                record.state = 'offer_accepted'
+            # If no accepted offers, check if any offers exist at all
+            elif record.offer_ids:
+                record.state = 'offer_received'
+            else:
+                record.state = 'new'
+    
     def action_cancel(self):
         for record in self:
             if record.state == 'sold':
