@@ -1,5 +1,6 @@
 from odoo import fields, models, api, exceptions
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools.float_utils import float_compare, float_is_zero
 from dateutil.relativedelta import relativedelta
 
 class EstateProperty(models.Model):
@@ -92,3 +93,12 @@ class EstateProperty(models.Model):
                 raise UserError("Cancelled properties cannot be sold.")
             record.state = 'sold'
         return True
+    
+    @api.constrains('selling_price', 'expected_price')
+    def _check_accept_offer(self):
+        for record in self:
+            if float_is_zero(record.selling_price, 3):
+                continue # 0 is fine, skip
+            if float_compare(record.selling_price, record.expected_price * 0.9, 3) == -1:
+                raise ValidationError("Selling price cannot be less than 90% of expected price")
+        # all records passed the test, don't return anything
