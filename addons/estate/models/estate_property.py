@@ -63,7 +63,7 @@ class EstateProperty(models.Model):
 
     @api.ondelete(at_uninstall=False)
     def _unlink_except_new_state(self):
-        if any(record.state == 'new' or record.state == 'cancelled' for record in self):
+        if any(record.state in ['new', 'cancelled'] for record in self):
             raise UserError("Can't delete New or Cancelled property!")
 
     @api.depends('living_area', 'garden_area')
