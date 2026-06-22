@@ -5,21 +5,33 @@
         <field name="model">estate.property.type</field>
         <field name="arch" type="xml">
             <form string="Estate Property Type Form">
-                <group>
-                    <field name="name"/>
-                </group>
-                <notebook>
-                    <page string="Properties">
-                        <!-- In property only show few data -->
-                        <field name="property_ids">
-                            <list> 
-                                <field name="name"/>
-                                <field name="expected_price"/>
-                                <field name="state"/>
-                            </list>
-                        </field>
-                    </page>
-                </notebook>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(estate_property_offer_views_type_action)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-money">
+                            <field name="offer_count" widget="statinfo" string="Offers"/>
+                        </button>
+                    </div>
+                    <group>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </group>
+                    <notebook>
+                        <page string="Properties">
+                            <!-- In property only show few data -->
+                            <field name="property_ids">
+                                <list> 
+                                    <field name="name"/>
+                                    <field name="expected_price"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>
         </field>
     </record>
