@@ -3,7 +3,7 @@
     'version': '1.0',
     'depends': ['base'],
     'author': "John Estate",
-    'category': 'Category',
+    'category': 'Estate',
     'description': """
     This is a Module for Real Estate.
     """,
